@@ -1,0 +1,47 @@
+server:
+  port: 8080 # Puerto interno del contenedor
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          metrics:
+            enabled: true # Habilitamos métricas para monitoreo con Prometheus/Grafana en el futuro
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins: "*"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  # Sin OPTIONS el navegador no pasa: antes de un POST con
+                  # Content-Type: application/json a otro origen manda una
+                  # petición de comprobación previa, y si se rechaza, el POST
+                  # real nunca se envía. Con curl no ocurre.
+                  - OPTIONS
+                allowedHeaders: "*"
+
+eureka:
+  instance:
+    # Identidad única dentro de la red de Docker
+    hostname: api-gateway
+    prefer-ip-address: true # CRÍTICO: Para que otros servicios lo vean por IP en la red interna
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      # Apunta al nombre del servicio definido en el docker-compose
+      defaultZone: ${DISCOVERY_SERVER_URL:http://discovery-server:8761/eureka/}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # Exponemos todos en Docker para monitoreo (Prometheus/Grafana listos para el futuro)
+        include: "*"
+  endpoint:
+    gateway:
+      access: unrestricted # Permitimos acceso sin restricciones a este endpoint para facilitar el monitoreo de rutas en Docker
