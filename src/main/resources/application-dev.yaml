@@ -1,0 +1,42 @@
+server:
+  port: 8080 # Puerto estándar para un API Gateway
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          # Configuración CORS global para permitir solicitudes desde cualquier origen, con los métodos HTTP comunes y cualquier encabezado.
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins: "*"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  # Sin OPTIONS el navegador no pasa: antes de un POST con
+                  # Content-Type: application/json a otro origen manda una
+                  # petición de comprobación previa, y si se rechaza, el POST
+                  # real nunca se envía. Con curl no ocurre.
+                  - OPTIONS
+                allowedHeaders: "*"
+
+eureka:
+  instance:
+    prefer-ip-address: false # En local usamos localhost
+  client:
+    register-with-eureka: true # El API Gateway se registra en Eureka para ser descubierto por otros servicios
+    fetch-registry: true # El API Gateway necesita obtener la lista de servicios registrados para enrutar correctamente las solicitudes
+    service-url:
+      defaultZone: ${DISCOVERY_SERVER_URL:http://localhost:8761/eureka/}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "scalar,health,info,gateway" # El endpoint 'gateway' permite ver las rutas activas
+  endpoint:
+    gateway:
+      access: unrestricted
