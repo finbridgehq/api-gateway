@@ -171,6 +171,32 @@ spring:
                 - StripPrefix=1
                 - BearerAuthorizationRequest
 
+            # RUTAS PARA EL NOTIFICATION SERVICE
+              # 10. Dispositivos y catálogo de notificaciones (Protegido - Específico)
+              # La app móvil registra aquí su token de FCM al iniciar sesión y lo da de
+              # baja al cerrarla. notification-service suscribe el token al topic del
+              # X-User-Id que inyecta BearerAuthorizationRequest, así que nadie puede
+              # registrar un dispositivo en nombre de otro usuario. Es Node.js/Express y
+              # se registra en Eureka como `notification-service`.
+            - id: notification-api-protected
+              uri: ${NOTIFICATION_SERVICE_URI:lb://notification-service}
+              predicates:
+                - Path=/notification/api/v1/device-registrations, /notification/api/v1/device-registrations/**, /notification/api/v1/notification-types
+              filters:
+                - StripPrefix=1
+                - BearerAuthorizationRequest
+
+              # 11. Documentación (Público - Específico)
+              # Igual que invoicing-docs-route: el agregador de Scalar del gateway lee
+              # /notification/openapi/v1.json, y /notification/reference es el Scalar
+              # propio del servicio.
+            - id: notification-docs-route
+              uri: ${NOTIFICATION_SERVICE_URI:lb://notification-service}
+              predicates:
+                - Path=/notification/openapi/**, /notification/reference
+              filters:
+                - StripPrefix=1
+
             # RUTAS PARA OTROS SERVICIOS (Ejemplo)
             # - id: catalog-service
             #   uri: lb://catalog-service
@@ -198,5 +224,8 @@ scalar:
     # /openapi/v1.json, no en /v3/api-docs como los servicios Spring.
     - url: /invoicing/openapi/v1.json
       title: Invoicing Service
+    # notification-service es Node.js (zod-to-openapi): mismo path que Invoicing.
+    - url: /notification/openapi/v1.json
+      title: Notification Service
   actuator-enabled: true
   theme: deep_space
