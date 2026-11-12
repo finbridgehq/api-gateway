@@ -20,6 +20,10 @@ spring:
               enabled: false # Desactivamos la detección automática de servicios para definir rutas explícitas
               lower-case-service-id: true # Convierte los IDs de servicio a minúsculas para las rutas
           # Definición de Rutas Explícitas
+          # Cada `uri` lleva el destino en una variable con Eureka como valor por
+          # defecto: en local y en Docker no hace falta definirlas. En Azure Container
+          # Apps no hay discovery server y el perfil `azure` las apunta al DNS interno
+          # del environment (p. ej. IAM_SERVICE_URI=http://vankoo-iam-service).
           routes:
             # RUTA PARA EL IAM SERVICE
               # Nombre interno de la ruta, no tiene que coincidir con nada específico, es solo para identificación interna
@@ -28,7 +32,7 @@ spring:
               # En lugar de poner una IP fija, le pregunta a Eureka quién es `iam-service` y le envía la petición.
               # Si tienes 3 instancias de `iam-service` corriendo, Eureka balanceará la carga entre ellas.
               # El nombre "iam-service" DEBE ser exactamente el `spring.application.name` que se puso en el IAM.
-              uri: lb://iam-service # 'lb://' activa el Load Balancer (balanceador de carga) de Eureka
+              uri: ${IAM_SERVICE_URI:lb://iam-service} # 'lb://' activa el Load Balancer (balanceador de carga) de Eureka
               predicates:
                 - Path=/iam/api/v1/authentication/** # Captura lo que venga como http://localhost:8080/iam/api/v1/authentication/** y lo enruta al IAM Service
               filters:
@@ -36,7 +40,7 @@ spring:
 
               # 2. Usuarios y perfiles (Protegido - Específico)
             - id: iam-users-protected
-              uri: lb://iam-service
+              uri: ${IAM_SERVICE_URI:lb://iam-service}
               predicates:
                 - Path=/iam/api/v1/users/**
               filters:
@@ -48,7 +52,7 @@ spring:
               # 3. Documentación y Actuator (Público - Específico)
               # Esto permite que Scalar funcione sin abrir el microservicio entero
             - id: iam-docs-route
-              uri: lb://iam-service
+              uri: ${IAM_SERVICE_URI:lb://iam-service}
               predicates:
                 - Path=/iam/v3/api-docs/**, /iam/actuator/**, /iam/swagger-ui/**
               filters:
@@ -65,7 +69,7 @@ spring:
               # /api/v1/internal/** (la evaluación de riesgo, entre otros) queda fuera a
               # propósito: es solo de red interna.
             - id: investment-auctions-protected
-              uri: lb://investment-service
+              uri: ${INVESTMENT_SERVICE_URI:lb://investment-service}
               predicates:
                 - Path=/investment/api/v1/auctions/**
               filters:
@@ -76,7 +80,7 @@ spring:
               # Igual que iam-docs-route. Investment usa springdoc con Scalar, así que
               # además de /v3/api-docs expone /scalar.
             - id: investment-docs-route
-              uri: lb://investment-service
+              uri: ${INVESTMENT_SERVICE_URI:lb://investment-service}
               predicates:
                 - Path=/investment/v3/api-docs/**, /investment/scalar/**
               filters:
@@ -92,7 +96,7 @@ spring:
               # a propósito: Stripe no manda JWT, detrás de este filtro fallaría
               # siempre. En local sigue entrando directo por el 8083.
             - id: finance-investor-protected
-              uri: lb://finance-service
+              uri: ${FINANCE_SERVICE_URI:lb://finance-service}
               predicates:
                 - Path=/finance/api/v1/deposits/**, /finance/api/v1/accounts/**
               filters:
@@ -103,7 +107,7 @@ spring:
               # Igual que iam-docs-route. El gateway-url del OpenAPI de Finance ya
               # apunta a :8080/finance.
             - id: finance-docs-route
-              uri: lb://finance-service
+              uri: ${FINANCE_SERVICE_URI:lb://finance-service}
               predicates:
                 - Path=/finance/v3/api-docs/**, /finance/actuator/**, /finance/swagger-ui/**
               filters:
@@ -115,7 +119,7 @@ spring:
               # agrega X-User-Id/X-User-Email/X-User-Roles antes de reenviar. El
               # controller de invoicing-service usa X-User-Id como MypeId.
             - id: invoicing-invoices-protected
-              uri: lb://invoicing-service
+              uri: ${INVOICING_SERVICE_URI:lb://invoicing-service}
               predicates:
                 - Path=/invoicing/api/v1/invoices/**
               filters:
@@ -129,7 +133,7 @@ spring:
               # es .NET (Scalar.AspNetCore), no Spring, así que sus rutas de docs son
               # /openapi/** y /scalar/** — no /v3/api-docs ni /swagger-ui como IAM.
             - id: invoicing-docs-route
-              uri: lb://invoicing-service
+              uri: ${INVOICING_SERVICE_URI:lb://invoicing-service}
               predicates:
                 - Path=/invoicing/openapi/**, /invoicing/scalar/**
               filters:

@@ -1,0 +1,45 @@
+# Perfil para Azure Container Apps (Sprint 3). Mismo código que `docker`, pero sin
+# los vecinos del Compose: no hay Eureka, así que cada ruta llega a su servicio por
+# el DNS interno del Container Apps Environment. El gateway debe estar en el mismo
+# environment que los servicios, y cada *_SERVICE_URI apunta al nombre de la app:
+#   IAM_SERVICE_URI=http://vankoo-iam-service
+#   INVESTMENT_SERVICE_URI=http://vankoo-investment-service
+#   FINANCE_SERVICE_URI=http://vankoo-finance-service
+#   INVOICING_SERVICE_URI=http://vankoo-invoicing-service
+# Las variables se leen en application.yaml; sin ellas el gateway intentaría Eureka.
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                # Orígenes configurables desde la Container App. En Azure conviene
+                # fijar ALLOWED_ORIGINS a las URLs de la web y de la landing.
+                allowedOrigins: ${ALLOWED_ORIGINS:*}
+                # OPTIONS es imprescindible: sin él el navegador no pasa la
+                # comprobación previa de un POST con JSON a otro origen.
+                allowedMethods: ${ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+                allowedHeaders: ${ALLOWED_HEADERS:*}
+
+# No hay discovery server en Azure. Sin esto el cliente de Eureka reintenta
+# registrarse contra un host inexistente y llena el log.
+eureka:
+  client:
+    enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # Solo lo que necesitan las sondas de la Container App y Scalar. El endpoint
+        # `gateway` (rutas y destinos internos) no debe salir a internet.
+        include: health,info,scalar
+  endpoint:
+    health:
+      probes:
+        enabled: true
