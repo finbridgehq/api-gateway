@@ -66,6 +66,9 @@ El proyecto utiliza perfiles para separar entornos:
 
 - **dev:** Configuración para desarrollo local.
 - **docker:** Configuración optimizada para correr dentro de Docker, con ajustes de red y puertos.
+- **azure:** Configuración para Azure Container Apps. Sin Eureka: cada ruta usa la variable `IAM_SERVICE_URI`, `INVESTMENT_SERVICE_URI`, `FINANCE_SERVICE_URI` o `INVOICING_SERVICE_URI` (por ejemplo, `http://vankoo-iam-service`), que apunta al DNS interno del Container Apps Environment. Los orígenes de CORS se fijan con `ALLOWED_ORIGINS`.
+
+El perfil se elige con la variable `SPRING_PROFILES_ACTIVE`; la imagen Docker usa `docker` por defecto.
 
 ## Notas de Desarrollo
 
