@@ -139,6 +139,22 @@ spring:
               filters:
                 - StripPrefix=1
 
+            # RUTAS PARA EL PROFILE SERVICE
+              # 8. La empresa de quien llama (Protegido - Específico)
+              # Solo /companies/me/**: esas rutas buscan la empresa por el X-User-Id
+              # que inyecta BearerAuthorizationRequest, así que cada MYPE ve y cambia
+              # solo la suya (perfil y certificado verde). Las rutas por :id de Profile
+              # (incluido /kyc/verify) no comprueban quién llama y quedan fuera a
+              # propósito: son de red interna. Profile es NestJS con prefijo /api y
+              # versión en la URI, igual que los demás.
+            - id: profile-companies-me-protected
+              uri: ${PROFILE_SERVICE_URI:lb://profile-service}
+              predicates:
+                - Path=/profile/api/v1/companies/me, /profile/api/v1/companies/me/**
+              filters:
+                - StripPrefix=1
+                - BearerAuthorizationRequest
+
             # RUTAS PARA OTROS SERVICIOS (Ejemplo)
             # - id: catalog-service
             #   uri: lb://catalog-service

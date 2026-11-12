@@ -6,6 +6,7 @@
 #   INVESTMENT_SERVICE_URI=http://vankoo-investment-service
 #   FINANCE_SERVICE_URI=http://vankoo-finance-service
 #   INVOICING_SERVICE_URI=http://vankoo-invoicing-service
+#   PROFILE_SERVICE_URI=http://vankoo-profile-service
 # Las variables se leen en application.yaml; sin ellas el gateway intentaría Eureka.
 server:
   port: 8080
