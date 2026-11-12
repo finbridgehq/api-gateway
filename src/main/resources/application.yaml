@@ -155,6 +155,22 @@ spring:
                 - StripPrefix=1
                 - BearerAuthorizationRequest
 
+            # RUTAS PARA EL RISK SERVICE
+              # 9. La evaluación de riesgo de quien llama (Protegido - Específico)
+              # Solo /mype/**: esa ruta busca la evaluación por el X-User-Id que inyecta
+              # BearerAuthorizationRequest y responde 404 si la subasta es de otra MYPE.
+              # Las lecturas internas (/api/v1/risk-assessments/**) traen datos de entrega
+              # a Investment y no comprueban quién llama, así que quedan fuera a
+              # propósito. risk-service es FastAPI y no se registra en Eureka: se llega
+              # por su nombre en la red del compose.
+            - id: risk-mype-assessments-protected
+              uri: ${RISK_SERVICE_URI:http://risk-service:8000}
+              predicates:
+                - Path=/risk/api/v1/mype/**
+              filters:
+                - StripPrefix=1
+                - BearerAuthorizationRequest
+
             # RUTAS PARA OTROS SERVICIOS (Ejemplo)
             # - id: catalog-service
             #   uri: lb://catalog-service
