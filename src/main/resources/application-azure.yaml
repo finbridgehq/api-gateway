@@ -24,7 +24,7 @@ spring:
                 allowedOrigins: ${ALLOWED_ORIGINS:*}
                 # OPTIONS es imprescindible: sin él el navegador no pasa la
                 # comprobación previa de un POST con JSON a otro origen.
-                allowedMethods: ${ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+                allowedMethods: ${ALLOWED_METHODS:GET,POST,PUT,PATCH,DELETE,OPTIONS}
                 allowedHeaders: ${ALLOWED_HEADERS:*}
 
 # No hay discovery server en Azure. Sin esto el cliente de Eureka reintenta
