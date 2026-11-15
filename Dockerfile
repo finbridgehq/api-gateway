@@ -21,5 +21,8 @@ USER spring
 # Copiamos el JAR generado
 COPY --from=build /app/target/gateway-*.jar app.jar
 EXPOSE 8080
-# Arrancamos la aplicación con el perfil de docker
-ENTRYPOINT ["java", "-Dspring.profiles.active=docker", "-jar", "app.jar"]
+# Perfil por defecto: docker (Compose local). Se elige por variable de entorno y no
+# con -D porque un -D en el ENTRYPOINT ganaría siempre a SPRING_PROFILES_ACTIVE y
+# haría imposible arrancar con otro perfil (por ejemplo, azure) sin reconstruir la imagen.
+ENV SPRING_PROFILES_ACTIVE=docker
+ENTRYPOINT ["java", "-jar", "app.jar"]

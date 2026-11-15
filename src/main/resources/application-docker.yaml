@@ -16,6 +16,8 @@ spring:
                   - GET
                   - POST
                   - PUT
+                  # PATCH: completar el perfil (PATCH /profile/api/v1/companies/me/profile).
+                  - PATCH
                   - DELETE
                   # Sin OPTIONS el navegador no pasa: antes de un POST con
                   # Content-Type: application/json a otro origen manda una
